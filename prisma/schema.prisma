@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  PROPIETARIO
+  FUNCIONARIO
+}
+
+enum TypeAgriculturalActivity {
+  PLANTIO
+  IRRIGACAO
+  COLHEITA
+}
+
+enum TypeInput {
+  FERTILIZANTES
+  DEFENSIVOS
+  SEMENTES
+  SUBSTRATOS
+  ADJUVANTES
+  AGUADEIRRIGACAO
+  REGULADORESDECRESCIMENTO
+  CORRETIVODESOLO
+}
+
+model User {
+  id String @id @default(uuid())
+  name String 
+  email String @unique
+  password String
+  userType UserType
+  employee Employee?
+  owner Owner?
+
+  @@map("users")
+}
+
+model Employee {
+  id String @id @default(uuid())
+
+  user User? @relation(fields: [userId], references: [id])
+  userId String @unique
+  farms Farm[] 
+
+  @@map("employees")
+}
+
+model Owner {
+  id String @id @default(uuid())
+
+  user User? @relation(fields: [userId], references: [id])
+  userId String @unique
+  farm Farm[]
+
+  @@map("owners")
+}
+
+
+model Farm {
+  id String @id @default(uuid())
+  name String 
+  location String
+  totalArea String
+
+  owner Owner? @relation(fields: [ownerId], references: [id])
+  ownerId String
+  employees Employee[]
+  cultivationField CultivationField[]
+
+  @@map("farms")
+}
+
+model CultivationField {
+  id String @id @default(uuid())
+  name String
+  area String
+  plantedCulture String
+  harvestDate DateTime
+  plantingDate DateTime
+
+  farm Farm? @relation(fields: [farmId], references: [id])
+  farmId String
+  agriculturalActivity AgriculturalActivity[]
+
+  @@map("cultivationFields")
+}
+
+model AgriculturalActivity {
+  id String @id @default(uuid())
+  typeAgriculturalActivity TypeAgriculturalActivity
+  dateTime DateTime
+  description String
+
+  cultivationField CultivationField @relation(fields: [cultivationFieldId], references: [id])
+  cultivationFieldId String
+  agriculturalInput AgriculturalInput[]
+
+
+  @@map("agriculturalActivitys")
+}
+
+model AgriculturalInput {
+  id String @id @default(uuid())
+  name String
+  typeInput TypeInput
+  qtdAvailable String
+  entryDate String
+  expirationDate String
+  supplier String
+
+  agriculturalActivity AgriculturalActivity[]
+
+  @@map("agriculturalInputs")
+}
+
