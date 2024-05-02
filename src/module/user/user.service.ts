@@ -10,13 +10,9 @@ export class UserService {
 
   constructor(private readonly dbContext: PrismaService) {}
 
-  async create(data: CreateUserDto): Promise<User | Error> {
+  async create(data: CreateUserDto): Promise<User> {
     try {
-      const userExisting = await this.dbContext.user.findFirst({
-        where: {
-          email: data.email
-        }
-      })
+      const userExisting = await this.findByEmail(data.email);
 
       if(userExisting) {
         throw new HttpException('Email already exists', HttpStatus.CONFLICT)
@@ -69,6 +65,21 @@ export class UserService {
     } catch(error) {
       console.error('Internal server error: ', error)
       throw new HttpException('Internal error.', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async findByEmail(email: string): Promise<User>{
+    try {
+      const userExists = await this.dbContext.user.findUnique({
+        where: {
+          email: email
+        }
+      })
+
+      return userExists;
+    } catch(error) {
+      console.error('Internal server error: ', error)
+      throw new HttpException('Internal server error.', HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
